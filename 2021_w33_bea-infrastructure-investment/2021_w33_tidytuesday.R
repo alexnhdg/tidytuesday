@@ -3,27 +3,23 @@
 # Alexander de Groot
 
 
-# environment setup -------------------------------------------------------
+# Environment setup -------------------------------------------------------
 
 library(tidyverse)
 library(shiny)
-library(gghighlight)
-library(ggrepel)
-library(gganimate)
-library(readxl)
 
 
 # Get Data ----------------------------------------------------------------
 
 tuesdata <- tidytuesdayR::tt_load(2021, week = 33)
-investment <- tuesdata$investment
 chain_investment <- tuesdata$chain_investment
 
 
-# User Interface ----------------------------------------------------------
+# Tidy Data ---------------------------------------------------------------
 
-ui <- fluidPage(
-    
+dash_data_chained <- chain_investment %>%
+  filter(group_num %in% c(1, 2, 3, 4, 16, 17, 22))
+
 )
 
 
