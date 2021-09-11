@@ -63,38 +63,48 @@ ui <- fluidPage(
         textInput(
             inputId = "plot_title",
             label = "Plot Title:",
-            value = "Title goes here",
+            value = "United States Basic Infrastructure Investment, 1947-2017",
             placeholder = "Enter a plot title"
         ),
         
         sliderInput(
             inputId = "selected_years",
             label = "Year Range:",
-            min = min(dash_data_chained$year), max = max(dash_data_chained$year) ,
-            value = c(min(dash_data_chained$year), max(dash_data_chained$year)),
-            step = 1
-        ),
-        
-        checkboxGroupInput(
-            inputId = "selected_meta_groups",
-            label = "Infrastrucutre Type:",
-            choices = unique(dash_data_chained$meta_cat),
-            selected = unique(dash_data_chained$meta_cat)
+            min = min(inv_data$year), max = max(inv_data$year) ,
+            value = c(min(inv_data$year), max(inv_data$year)),
+            step = 1,
+            sep = ""
         ),
         
         selectInput(
+            inputId = "selected_group",
+            label = "Infrastructure Type:",
+            choices = unique(inv_data$meta_cat)
+        ),
+        
+        checkboxGroupInput(
             inputId = "selected_sub_groups",
-            label = "Infrastructure Sub-Group:",
-            choices = unique(dash_data_chained$category),
-            selected = NULL,
-            multiple = TRUE,
-            selectize = TRUE
+            label = "Infrastructure Sub-Type:",
+            choices = unique(inv_data$category),
+            selected = unique(inv_data$category)
+        ),
+        
+        downloadButton(
+            outputId = "download_plot",
+            label = "Download Plot"
+        ),
+        
+        downloadButton(
+            outputId = "download_data",
+            label = "Download Data"
         )
+        
     ),
     
     mainPanel(
         
-        plotOutput(outputId = "plot")
+        plotOutput(outputId = "plot"),
+        DT::dataTableOutput(outputId = "plot_data")
         
     )
 )
@@ -104,26 +114,77 @@ ui <- fluidPage(
 
 server <- function(input, output) {
     
-    plot_data_chained <- reactive({
-        dash_data_chained %>% 
+    sub_groups <- reactive({
+        filter(inv_data, meta_cat == input$selected_group)
+    })
+    observeEvent(sub_groups(), {
+        choices <- unique(sub_groups()$category)
+        updateCheckboxGroupInput(
+            inputId = "selected_sub_groups",
+            choices = choices,
+            selected = choices)
+    })
+    
+    plot_data <- reactive({
+        inv_data %>% 
             filter(
+                meta_cat == input$selected_group,
+                category %in% input$selected_sub_groups,
                 year >= input$selected_years[1],
-                year <= input$selected_years[2],
-                meta_cat %in% input$selected_meta_groups,
-                category %in% input$selected_sub_groups
+                year <= input$selected_years[2]
+            )
+    })
+    
+    plot <- reactive({
+        ggplot(plot_data(), aes(x = year, y = inv_gross)) +
+            geom_area(
+                aes(fill = category),
+                position = "fill",
+                color = "white"
+            ) +
+            scale_y_continuous(labels = scales::percent) +
+            labs(
+                title = input$plot_title,
+                caption = "Source: US Bureau of Labor Economics",
+                x = "", y = ""
+            ) +
+            theme_minimal() +
+            theme(
+                legend.position = "bottom"
             )
     })
     
     output$plot <- renderPlot({
-        ggplot(plot_data_chained(), aes(x = year, y = gross_inv_chain)) +
-            geom_area(aes(fill = category), color = "white") +
-            labs(
-                title = input$plot_title,
-                caption = "Source: US Bureau of Labor Economics",
-                x = "Year", y = "US Dollars"
-            ) +
-            theme_minimal()
+        print(plot())
     })
+    
+    output$plot_data <- DT::renderDataTable({
+        DT::datatable(
+            plot_data(),
+            colnames = c("Infrastructure Category" = "meta_cat",
+                         "Infrastructure Sub-Category" = "category",
+                         "Year" = "year",
+                         "Gross Investment 2012 Dollars" = "inv_gross")
+        )
+    })
+    
+    output$download_plot <- downloadHandler(
+        filename = function() {
+            "myplot.png"
+        },
+        content = function(file) {
+            ggsave(file, plot = plot(), device = "png")
+        }
+    )
+    
+    output$download_data <- downloadHandler(
+        filename = function() {
+            "mydata.csv"
+        },
+        content = function(file) {
+            write_csv(plot_data(), file)
+        }
+    )
 
 }
 
