@@ -52,18 +52,6 @@ inv_data <- inv_gross_data_raw %>%
     select(meta_cat, category, year, inv_gross)
 
 
-# Get Data ----------------------------------------------------------------
-
-tuesdata <- tidytuesdayR::tt_load(2021, week = 33)
-chain_investment <- tuesdata$chain_investment
-
-
-# Tidy Data ---------------------------------------------------------------
-
-dash_data_chained <- chain_investment %>%
-  filter(group_num %in% c(1, 2, 3, 4, 16, 17, 22))
-
-
 # User Interface ----------------------------------------------------------
 
 ui <- fluidPage(
