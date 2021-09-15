@@ -7,13 +7,12 @@
 
 library(tidyverse)
 library(shiny)
-library(readxl)
-library(here)
+
 
 # Get Data ----------------------------------------------------------------
 
-inv_gross_data_raw <- read_xlsx(
-    path = here("2021_w33_bea-infrastructure-investment", "infrastructure-data-may-2020.xlsx"),
+inv_gross_data_raw <- readxl::read_xlsx(
+    path = here::here("2021_week33", "infrastructure-data-may-2020.xlsx"),
     sheet = "cu$inv",
     range = "A3:BU108",
     na = ""
