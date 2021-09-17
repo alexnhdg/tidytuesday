@@ -6,6 +6,7 @@
 # Environment Setup -------------------------------------------------------
 
 library(tidyverse)
+library(lubridate)
 
 
 # Load Data ---------------------------------------------------------------
@@ -62,3 +63,31 @@ audio_features_raw <- read_csv(
         spotify_track_popularity = col_double()
     )
 )
+
+
+# Tidy Data ---------------------------------------------------------------
+
+billboard_decades_top5 <- billboard_raw %>% 
+    mutate(
+        week_id = mdy(week_id),
+        year = year(week_id),
+        decade = case_when(
+            between(year, 1950, 1959) ~ "1950s",
+            between(year, 1960, 1969) ~ "1960s",
+            between(year, 1970, 1979) ~ "1970s",
+            between(year, 1980, 1989) ~ "1980s",
+            between(year, 1990, 1999) ~ "1990s",
+            between(year, 2000, 2009) ~ "2000s",
+            between(year, 2010, 2019) ~ "2010s",
+            between(year, 2020, 2029) ~ "2020s"
+        ),
+        song_performer = str_c(song, performer, sep = " by ")
+    ) %>% 
+    filter(instance == 1, week_position <= 5, between(year, 1960, 2019)) %>%
+    group_by(decade, song_id, song, performer, song_performer) %>% 
+    summarize(weeks_top_5 = n()) %>% 
+    ungroup() %>% 
+    arrange(decade, desc(weeks_top_5)) %>% 
+    group_by(decade) %>% 
+    slice(1) %>% 
+    ungroup()
