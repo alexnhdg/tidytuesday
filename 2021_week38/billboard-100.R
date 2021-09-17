@@ -91,3 +91,15 @@ billboard_decades_top5 <- billboard_raw %>%
     group_by(decade) %>% 
     slice(1) %>% 
     ungroup()
+
+# Make Chart --------------------------------------------------------------
+
+ggplot(billboard_decades_top5, aes(x = decade, y = weeks_top_5, fill = decade)) +
+    geom_col(show.legend = FALSE) +
+    coord_flip() +
+    theme_minimal() +
+    labs(
+        title = "Songs with the longest initial streak in the top 5 on the Billboard 100 by decade",
+        x = "Decade", y = "Weeks",
+        caption = "Source: Data.World by way of Sean Miller, Billboard.com and Spotify"
+    )
