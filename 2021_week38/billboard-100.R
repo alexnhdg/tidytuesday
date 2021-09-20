@@ -17,6 +17,7 @@ library(lubridate)
 # billboard_raw <- tuesdata$billboard
 # write_csv(billboard_raw, here::here("2021_week38", "billboard_raw.csv"))
 
+
 billboard_raw <- read_csv(
     file = here::here("2021_week38", "billboard_raw.csv"),
     col_types = cols(
@@ -32,6 +33,7 @@ billboard_raw <- read_csv(
         weeks_on_chart = col_double()
     )
 )
+
 
 # Tidy Data ---------------------------------------------------------------
 
@@ -51,14 +53,15 @@ billboard_decades_top5 <- billboard_raw %>%
         ),
         song_performer = str_c(song, performer, sep = " by ")
     ) %>% 
-    filter(instance == 1, week_position <= 5, between(year, 1960, 2019)) %>%
-    group_by(decade, song_id, song, performer, song_performer) %>% 
-    summarize(weeks_top_5 = n()) %>% 
+    filter(between(year, 1960, 2019)) %>%
+    group_by(decade, song_id, song, performer, instance) %>% 
+    summarize(weeks_top_100 = n()) %>% 
     ungroup() %>% 
-    arrange(decade, desc(weeks_top_5)) %>% 
+    arrange(decade, desc(weeks_top_100)) %>% 
     group_by(decade) %>% 
-    slice(1) %>% 
+    slice(1) %>%
     ungroup()
+
 
 # Make Chart --------------------------------------------------------------
 
