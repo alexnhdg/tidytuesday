@@ -82,6 +82,7 @@ ggplot(
     coord_flip() +
     theme_minimal() +
     theme(
+        plot.background = element_rect(color = "white"),
         plot.title = element_text(face = "bold", size = 12),
         axis.line = element_line(linetype = "solid"),
         axis.title.x = element_text(hjust = 0),
