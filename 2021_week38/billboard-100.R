@@ -50,8 +50,7 @@ billboard_decades_top5 <- billboard_raw %>%
             between(year, 2000, 2009) ~ "2000s",
             between(year, 2010, 2019) ~ "2010s",
             between(year, 2020, 2029) ~ "2020s"
-        ),
-        song_performer = str_c(song, performer, sep = " by ")
+        )
     ) %>% 
     filter(between(year, 1960, 2019)) %>%
     group_by(decade, song_id, song, performer, instance) %>% 
@@ -65,12 +64,37 @@ billboard_decades_top5 <- billboard_raw %>%
 
 # Make Chart --------------------------------------------------------------
 
-ggplot(billboard_decades_top5, aes(x = decade, y = weeks_top_5, fill = decade)) +
+billboard_decades_top100 <- billboard_decades_top5 %>% 
+    mutate(
+        chart_label_song = str_c('"', song, '"', "\n", performer),
+        chart_label_weeks = str_c(weeks_top_100, " weeks")
+    )
+
+
+ggplot(
+    billboard_decades_top100,
+    aes(x = decade, y = weeks_top_100, fill = decade)
+) +
     geom_col(show.legend = FALSE) +
+    geom_text(aes(label = chart_label_song, hjust = "right"), nudge_y = -0.75, size = 3, fontface = "italic") +
+    geom_text(aes(label = chart_label_weeks, hjust = "left"), nudge_y = 0.75, size = 3, fontface = "italic") +
+    scale_y_continuous(expand = c(0, 0), limits = c(0, 95)) +
     coord_flip() +
     theme_minimal() +
+    theme(
+        plot.title = element_text(face = "bold", size = 12),
+        axis.line = element_line(linetype = "solid"),
+        axis.title.x = element_text(hjust = 0),
+        axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10)
+    ) +
     labs(
-        title = "Songs with the longest initial streak in the top 5 on the Billboard 100 by decade",
-        x = "Decade", y = "Weeks",
-        caption = "Source: Data.World by way of Sean Miller, Billboard.com and Spotify"
+        title = "By decade, which song had the longest continuous streak on the Billboard 100?",
+        x = "", y = "",
+        caption = str_c(
+            "Source: Data.World by way of Sean Miller, Billboard.com, and Spotify", " / ",
+            "Chart by Alexander de Groot"
+        )
     )
+
+ggsave(here::here("2021_week38", "2021_week38_chart.png"))
